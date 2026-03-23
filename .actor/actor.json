@@ -3,7 +3,7 @@
   "name": "email-validator-api",
   "title": "Email Validator API",
   "description": "Comprehensive email validation: syntax (RFC 5322), MX lookup, disposable detection (550+ domains), role-based detection, SPF/DKIM checks, typo suggestions, risk scoring (0-100), batch validation.",
-  "version": "1.0.0",
+  "version": "1.0",
   "buildTag": "latest",
   "input": "./input_schema.json",
   "readme": "./README.md",
