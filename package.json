@@ -1,0 +1,25 @@
+{
+  "name": "email-validator-api",
+  "version": "1.0.0",
+  "description": "Comprehensive email validation API with MCP support — syntax, MX, disposable detection, typo suggestions, risk scoring",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "keywords": [
+    "email",
+    "validation",
+    "mcp",
+    "disposable-email",
+    "mx-lookup",
+    "risk-score"
+  ],
+  "author": "lazymac",
+  "license": "MIT",
+  "dependencies": {
+    "apify": "^3.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}

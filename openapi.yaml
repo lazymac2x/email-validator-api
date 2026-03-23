@@ -1,0 +1,288 @@
+openapi: "3.0.3"
+info:
+  title: Email Validator API
+  version: "1.0.0"
+  description: |
+    Comprehensive email validation API with MCP support.
+
+    Features:
+    - RFC 5322 syntax validation
+    - MX record lookup via DNS
+    - Disposable email detection (550+ domains)
+    - Role-based email detection (admin@, info@, etc.)
+    - Domain reputation (SPF, DKIM, MX, A records)
+    - Common typo suggestions (gmial→gmail, etc.)
+    - Risk scoring (0-100)
+    - Batch validation (up to 100 emails)
+    - MCP JSON-RPC 2.0 endpoint
+
+servers:
+  - url: http://localhost:3100
+    description: Local development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  version:
+                    type: string
+                  timestamp:
+                    type: string
+
+  /validate:
+    post:
+      summary: Validate a single email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  example: "user@gmail.com"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+
+  /validate/batch:
+    post:
+      summary: Batch validate emails (max 100)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [emails]
+              properties:
+                emails:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 100
+                  example: ["user@gmail.com", "test@mailinator.com"]
+      responses:
+        "200":
+          description: Batch validation results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  valid:
+                    type: integer
+                  invalid:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ValidationResult"
+
+  /domain:
+    post:
+      summary: Check domain reputation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain:
+                  type: string
+                  example: "gmail.com"
+      responses:
+        "200":
+          description: Domain reputation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainResult"
+
+  /suggest:
+    post:
+      summary: Suggest typo fix for email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  example: "user@gmial.com"
+      responses:
+        "200":
+          description: Typo suggestion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestionResult"
+
+  /mcp:
+    post:
+      summary: MCP JSON-RPC 2.0 endpoint
+      description: |
+        Supports methods: initialize, tools/list, tools/call.
+        Tools: validate_email, validate_batch, check_domain, suggest_fix.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jsonrpc, id, method]
+              properties:
+                jsonrpc:
+                  type: string
+                  enum: ["2.0"]
+                id:
+                  type: integer
+                method:
+                  type: string
+                params:
+                  type: object
+      responses:
+        "200":
+          description: JSON-RPC response
+
+components:
+  schemas:
+    ValidationResult:
+      type: object
+      properties:
+        email:
+          type: string
+        syntax:
+          type: object
+          properties:
+            valid:
+              type: boolean
+            reason:
+              type: string
+              nullable: true
+        role:
+          type: object
+          properties:
+            is_role:
+              type: boolean
+            role:
+              type: string
+              nullable: true
+        disposable:
+          type: object
+          properties:
+            is_disposable:
+              type: boolean
+        mx:
+          type: object
+          properties:
+            has_mx:
+              type: boolean
+            mx_records:
+              type: array
+              items:
+                type: object
+                properties:
+                  priority:
+                    type: integer
+                  exchange:
+                    type: string
+        domain:
+          type: object
+          properties:
+            domain_exists:
+              type: boolean
+        spf:
+          type: object
+          properties:
+            has_spf:
+              type: boolean
+            spf_record:
+              type: string
+              nullable: true
+        dkim:
+          type: object
+          properties:
+            has_dkim:
+              type: boolean
+            dkim_selector:
+              type: string
+              nullable: true
+        typo:
+          type: object
+          properties:
+            has_typo:
+              type: boolean
+            suggested_domain:
+              type: string
+              nullable: true
+        risk:
+          type: object
+          properties:
+            score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            label:
+              type: string
+              enum: [low, medium, high, critical]
+        deliverable:
+          type: boolean
+
+    DomainResult:
+      type: object
+      properties:
+        domain:
+          type: string
+        exists:
+          type: boolean
+        mx:
+          type: object
+        spf:
+          type: object
+        dkim:
+          type: object
+        is_disposable:
+          type: boolean
+        is_free_provider:
+          type: boolean
+        reputation_score:
+          type: integer
+        reputation_label:
+          type: string
+
+    SuggestionResult:
+      type: object
+      properties:
+        original:
+          type: string
+        has_suggestion:
+          type: boolean
+        suggested:
+          type: string
+          nullable: true
+        reason:
+          type: string

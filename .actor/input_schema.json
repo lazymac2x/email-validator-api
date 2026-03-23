@@ -1,0 +1,36 @@
+{
+  "title": "Email Validator Input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "mode": {
+      "title": "Mode",
+      "type": "string",
+      "description": "Operation mode: validate, batch, domain, suggest",
+      "default": "validate",
+      "enum": ["validate", "batch", "domain", "suggest"],
+      "editor": "select"
+    },
+    "email": {
+      "title": "Email",
+      "type": "string",
+      "description": "Email address (for validate/suggest modes)",
+      "editor": "textfield"
+    },
+    "emails": {
+      "title": "Emails",
+      "type": "array",
+      "description": "Array of emails (for batch mode, max 100)",
+      "editor": "json",
+      "items": {
+        "type": "string"
+      }
+    },
+    "domain": {
+      "title": "Domain",
+      "type": "string",
+      "description": "Domain name (for domain mode)",
+      "editor": "textfield"
+    }
+  }
+}
