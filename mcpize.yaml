@@ -1,2 +1,3 @@
+runtime: container
 entry: src/server.js
 mcpPath: /mcp
